@@ -1,0 +1,10 @@
+<h1>Email Verified</h1>
+
+<form method = 'post', action = "{% url 'validate_code' %}"> 
+    {% csrf_token %}
+    {{ form.as_p }}
+    <label for="given_digit">Please enter code:</label>
+    <input id="given_digit" type="text" name="given_digit" value="{{ the_number }}">
+    <input id="valid_id" type="hidden" name="valid_id" value="{{ validation_id }}">
+    <button class="btn btn-primary" type="submit">Submit</button> 
+</form>
