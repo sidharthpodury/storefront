@@ -5,6 +5,7 @@ from django.contrib.sessions.models import Session
 import random
 import os
 import sendgrid
+from playground import secret
 
 #TO DO: Declare validation_code variable
 #TO DO: Create definition called validate_code
@@ -31,7 +32,7 @@ def verifyemail(request):
     validation_instance = Validation.objects.create(person = person_instance, validation_code=code)
     validation_instance.save()
     validation_id = validation_instance.id
-    send_email(email, code)
+    send_validation(email, code)
     print(request.path)
     return render(request, 'verifyemail.html', {'code': code, 'validation_id': validation_id})
 
@@ -53,17 +54,48 @@ def validate_code(request):
         # Redirect the user back to the form page or display an error message
         return render(request, 'verifyemail.html')
     
-def send_email(to_address, code):
+def send_validation(to_address, code):
     message = sendgrid.mail.Mail(
     from_email='sidharthpodury@gmail.com',
     to_emails=to_address,
     subject='Here is your secret code',
     html_content= f'Your code is : <strong>{code}</strong>')
     try:
-        sgclient = sendgrid.SendGridAPIClient('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')
+        sgclient = sendgrid.SendGridAPIClient(secret.my_api_key)
         response = sgclient.send(message)
         print(response.status_code)
         print(response.body)
         print(response.headers)
     except Exception as e:
         print(e.message)
+        
+def send_invite(request):
+    if request.method == 'POST':
+        person1_email = request.POST.get('person1')
+        person2_email = request.POST.get('person2')
+        meeting_time1 = request.POST.get('meeting_time1')
+        meeting_time2 = request.POST.get('meeting_time2')
+        meeting_time3 = request.POST.get('meeting_time3')
+
+        email_content = f"Dear invitee,\n\nYou are invited to a meeting.\n\nPlease choose from the following meeting times:\n\n1. {meeting_time1}\n2. {meeting_time2}\n3. {meeting_time3}\n\nBest regards,\nYour Meeting Organizer"
+
+        try:
+            message = sendgrid.mail.Mail(
+                from_email='sidharthpodury@gmail.com',  # Replace with your sender email
+                to_emails=[person1_email, person2_email],
+                subject='Meeting Invitation',
+                html_content=email_content
+            )
+
+            sg = sendgrid.SendGridAPIClient(api_key=secret.my_api_key)  # Replace with your SendGrid API key
+            response = sg.send(message)
+
+            if response.status_code == 202:
+                return render(request, 'invitation_sent.html')
+            else:
+                return render(request, 'error.html')
+
+        except Exception as e:
+            return render(request, 'error.html')
+
+    return render(request, 'invite.html')

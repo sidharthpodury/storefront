@@ -1,1 +1,25 @@
-<h1>Code verified.</h1>
+<h1>Email Verified</h1>
+<form method="post" action="{% url 'send_invite' %}">
+    {% csrf_token %}
+    <label for="person1">Invitee 1 email:</label>
+    <br>
+    <input id="person1" type="email" name="person1" required>
+    <br>
+    <label for="person2">Invitee 2 email:</label>
+    <br>
+    <input id="person2" type="email" name="person2" required>
+    <br><br>
+    <label for="meeting_time1">Meeting Time 1:</label>
+    <br>
+    <input id="meeting_time1" type="datetime-local" name="meeting_time1" required>
+    <br>
+    <label for="meeting_time2">Meeting Time 2:</label>
+    <br>
+    <input id="meeting_time2" type="datetime-local" name="meeting_time2" required>
+    <br>
+    <label for="meeting_time3">Meeting Time 3:</label>
+    <br>
+    <input id="meeting_time3" type="datetime-local" name="meeting_time3" required>
+    <br><br>
+    <button class="btn btn-primary" type="submit">Send Invite</button>
+</form>
