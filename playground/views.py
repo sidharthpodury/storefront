@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from .models import Person, Validation
+from .models import Person, Validation, Invitation, Timeslot
 from django.contrib.sessions.models import Session
 import random
 import os
@@ -71,31 +71,27 @@ def send_validation(to_address, code):
         
 def send_invite(request):
     if request.method == 'POST':
-        person1_email = request.POST.get('person1')
-        person2_email = request.POST.get('person2')
-        meeting_time1 = request.POST.get('meeting_time1')
-        meeting_time2 = request.POST.get('meeting_time2')
-        meeting_time3 = request.POST.get('meeting_time3')
+        # Get the selected invitees and meeting times from the form data
+        #TODO: Figure out how to read more than one item from form
+        selected_invitees = request.POST.getlist('invitees')
+        selected_meeting_times = request.POST.getlist('meeting_times')
+        sender_email = "sidharth.podury@gmail.com"
+        invitees = ['kmpodury@gmail.com', 'koswati@gmail.com']
+        available_times = ['3/3/2023 8AM', '1/03/2023 10AM']
+        sender_person = Person.objects.create(email=sender_email)
+        sender_person.save()
+        invitation = Invitation.objects.create(sender = sender_person)
+        invitation.save()
+        print(f"invitation is {invitation}")
+        for email in invitees:
+            invited = Person.objects.create(email=email)
+            invited.save()
+            for selected_time in available_times:
+                timeslot = Timeslot.objects.create(invitee=invited, invitation=invitation, selected_dt=selected_time)
+                timeslot.save()
+                print(f"timeslot is {timeslot}")
+        # After saving the data, you may redirect to a success page or render a success template
+        return render(request, 'invitation_sent.html')
 
-        email_content = f"Dear invitee,\n\nYou are invited to a meeting.\n\nPlease choose from the following meeting times:\n\n1. {meeting_time1}\n2. {meeting_time2}\n3. {meeting_time3}\n\nBest regards,\nYour Meeting Organizer"
-
-        try:
-            message = sendgrid.mail.Mail(
-                from_email='sidharthpodury@gmail.com',  # Replace with your sender email
-                to_emails=[person1_email, person2_email],
-                subject='Meeting Invitation',
-                html_content=email_content
-            )
-
-            sg = sendgrid.SendGridAPIClient(api_key=secret.my_api_key)  # Replace with your SendGrid API key
-            response = sg.send(message)
-
-            if response.status_code == 202:
-                return render(request, 'invitation_sent.html')
-            else:
-                return render(request, 'error.html')
-
-        except Exception as e:
-            return render(request, 'error.html')
-
-    return render(request, 'invite.html')
+    # If it's not a POST request, simply render the formf
+    return render(request, 'success.html')
