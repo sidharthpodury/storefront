@@ -1,54 +1,84 @@
-<h1>Email Verified</h1>
-<form method="post" action="{% url 'send_invite' %}">
-    {% csrf_token %}
-    <!-- Listbox for Invitee Emails -->
-    <label for="invitees">Invitees:</label>
-    <br>
-    <select id="invitees" name="invitees" multiple required>
-        <!-- Existing invitee emails (if any) can be displayed here -->
-    </select>
-    <input id="invitee_input" type="email" multiple>
-    <button type="button" id="add_invitee_button">+</button>
-    <br><br>
-    <!-- Listbox for Meeting Times -->
-    <label for="meeting_times">Meeting Times:</label>
-    <br>
-    <select id="meeting_times" name="meeting_times" multiple required>
-        <!-- Existing meeting times (if any) can be displayed here -->
-    </select>
-    <input id="meeting_time_input" type="datetime-local" multiple>
-    <button type="button" id="add_time_button">+</button>
-    <br><br>
-    <button class="btn btn-primary" type="submit">Send Invite</button>
-</form>
+<!DOCTYPE html>
+<html>
 
-<!-- JavaScript to handle + button clicks -->
-<script>
-    // Function to add emails to the invitee listbox
-    function addInvitee() {
-        var inviteeEmail = document.getElementById("invitee_input").value.trim();
-        if (inviteeEmail) {
-            var inviteesList = document.getElementById("invitees");
-            var option = document.createElement("option");
-            option.text = inviteeEmail;
-            inviteesList.add(option);
-            document.getElementById("invitee_input").value = "";
+<head>
+    <title>Email Verified - Success</title>
+</head>
+
+<body>
+    <h1>Email Verified</h1>
+    <form method="post" action="{% url 'send_invite' %}">
+        {% csrf_token %}
+        <!-- Hidden text box to store selected invitee emails -->
+        <input type="hidden" id="selectedInvitees" name="selected_invitees">
+        <!-- Hidden text box to store selected meeting times -->
+        <input type="hidden" id="selectedMeetingTimes" name="selected_meeting_times">
+
+        <!-- Listbox for Invitee Emails (as Checklist Select) -->
+        <label>Invitees:</label>
+        <br>
+        <div id="inviteesList">
+            <!-- Existing invitee emails (if any) can be displayed here -->
+        </div>
+        <input id="invitee_input" type="email">
+        <button type="button" id="add_invitee_button">+</button>
+        <br><br>
+        <!-- Listbox for Meeting Times (as Checklist Select) -->
+        <label>Meeting Times:</label>
+        <br>
+        <div id="meetingTimesList">
+            <!-- Existing meeting times (if any) can be displayed here -->
+        </div>
+        <input id="meeting_time_input" type="datetime-local">
+        <button type="button" id="add_time_button">+</button>
+        <br><br>
+        <button class="btn btn-primary" type="submit">Send Invite</button>
+    </form>
+
+    <script>
+        function addInvitee() {
+            var inviteeEmail = document.getElementById("invitee_input").value.trim();
+            if (inviteeEmail) {
+                var inviteesList = document.getElementById("inviteesList");
+                var label = document.createElement("label");
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.name = "invitees";
+                checkbox.value = inviteeEmail;
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(inviteeEmail));
+                inviteesList.appendChild(label);
+                document.getElementById("invitee_input").value = "";
+
+                var hiddenInvitees = document.getElementById("selectedInvitees");
+                hiddenInvitees.value += inviteeEmail + ",";
+            }
         }
-    }
 
-    // Function to add meeting times to the meeting times listbox
-    function addMeetingTime() {
-        var meetingTime = document.getElementById("meeting_time_input").value.trim();
-        if (meetingTime) {
-            var meetingTimesList = document.getElementById("meeting_times");
-            var option = document.createElement("option");
-            option.text = meetingTime;
-            meetingTimesList.add(option);
-            document.getElementById("meeting_time_input").value = "";
+        function addMeetingTime() {
+            var meetingTime = document.getElementById("meeting_time_input").value.trim();
+            if (meetingTime) {
+                var meetingTimesList = document.getElementById("meetingTimesList");
+                var label = document.createElement("label");
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.name = "meeting_times";
+                checkbox.value = meetingTime;
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(meetingTime));
+                meetingTimesList.appendChild(label);
+                document.getElementById("meeting_time_input").value = "";
+
+                // Append the selected meeting time to the hidden text box
+                var hiddenMeetingTimes = document.getElementById("selectedMeetingTimes");
+                hiddenMeetingTimes.value += meetingTime + ",";
+            }
         }
-    }
 
-    // Add event listeners to + buttons
-    document.getElementById("add_invitee_button").addEventListener("click", addInvitee);
-    document.getElementById("add_time_button").addEventListener("click", addMeetingTime);
-</script>
+        // Add event listeners to + buttons
+        document.getElementById("add_invitee_button").addEventListener("click", addInvitee);
+        document.getElementById("add_time_button").addEventListener("click", addMeetingTime);
+    </script>
+</body>
+
+</html>

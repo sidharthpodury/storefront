@@ -31,4 +31,4 @@ class Timeslot(models.Model):
     selected_dt = models.TextField()
 
     def __str__(self):
-        return str(self.pk)
+        return str(self.selected_dt)

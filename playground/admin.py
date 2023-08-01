@@ -3,4 +3,5 @@ from .models import *
 
 admin.site.register(Person)
 admin.site.register(Validation)
-# Register your models here.
+admin.site.register(Invitation)
+admin.site.register(Timeslot)
