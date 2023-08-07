@@ -7,7 +7,7 @@
 
 <body>
     <h1>Email Verified</h1>
-    <form method="post" action="{% url 'send_invite' %}">
+    <form method="post" action="{% url 'get_invite' %}">
         {% csrf_token %}
         <!-- Hidden text box to store selected invitee emails -->
         <input type="hidden" id="selectedInvitees" name="selected_invitees">

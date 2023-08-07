@@ -118,19 +118,21 @@ def send_validation(to_address, code):
     except Exception as e:
         print(e.message)
 
-
-def send_invite(request):
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+def get_invite(request):
     if request.method == "POST":
-        selected_invitees = request.POST.getlist("invitees")
+        selected_invitees = request.POST.getlist("selected_invitees")
         selected_meeting_times = request.POST.getlist("meeting_times")
-        sender_email = "sid.podury@gmail.com"
+        sender_email = request.POST.get("sender_email")
 
         sender_person, _ = Person.objects.get_or_create(email=sender_email)
+        print("Sender person is", sender_email)
 
         invitation = Invitation.objects.create(sender=sender_person)
 
         for email in selected_invitees:
             invited, _ = Person.objects.get_or_create(email=email)
+            send_invite(email, sender_person)
             for selected_time in selected_meeting_times:
                 timeslot = Timeslot.objects.create(
                     invitee=invited,
@@ -139,3 +141,20 @@ def send_invite(request):
                 )
         return render(request, "invitation_sent.html")
     return render(request, "success.html")
+
+def send_invite(invitee, sender_person):
+    print(invitee, sender_person)
+    message = sendgrid.mail.Mail(
+    from_email="sidharthpodury@gmail.com",
+    to_emails="sidharthpodury@gmail.com",
+    subject="Here is your invitation",
+    html_content=f"Invitation sent",
+    )
+    try:
+        sgclient = sendgrid.SendGridAPIClient(secret.my_api_key)
+        response = sgclient.send(message)
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+    except Exception as e:
+        print(e.message)
