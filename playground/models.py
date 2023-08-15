@@ -29,6 +29,7 @@ class Timeslot(models.Model):
     invitee = models.ForeignKey(Person, on_delete=models.CASCADE, null=True)
     invitation = models.ForeignKey(Invitation, on_delete=models.CASCADE, null=True)
     selected_dt = models.TextField()
+    is_available = models.BooleanField(null=True)
 
     def __str__(self):
         return str(self.selected_dt)

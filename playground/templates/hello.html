@@ -1,15 +1,19 @@
-<h1>Project 1!</h1>
+<body style="background-color:cornsilk;"></body>
+<h1><strong>Welcome to your meeting manager</strong></h1>
 <!-- <form method = 'POST', action = '/playground/verifyemail/'> -->
 <form method='POST' , action="{% url 'verifyemail' %}">
     {% csrf_token %}
     {{ form.as_p }}
-    <label for="sender_email">Email Address:</label>
+    {% load static %}
+    <link rel="stylesheet" href="{ % static 'styles.css'%}">
+    <label for="sender_email">Enter Email Address:</label>
     <input id="sender_email" type="text" name="sender_email" value="{{ current_name }}">
-
-    <label for="first_name">First name:</label>
+    <br><br>
+    <label for="first_name">Enter First name:</label>
     <input id="first_name" type="text" name="first_name" value="{{ f_name }}">
-
-    <label for="last_name">Last name:</label>
+    <br><br>
+    <label for="last_name">Enter Last name:</label>
     <input id="last_name" type="text" name="last_name" value="{{ l_name }}">
+    <br>
     <button class="btn btn-primary" type="submit">Submit</button>
 </form>

@@ -51,7 +51,6 @@ def verify_email(request):
     # TO DO: Generate 6 digit code
     # TO DO: Return 6 digit code to user
     code = generate_code()
-    request.session["generated_code"] = code
     email = request.POST.get("sender_email")
     fname = request.POST.get("first_name")
     lname = request.POST.get("last_name")
@@ -68,12 +67,11 @@ def verify_email(request):
     send_validation(email, code)
     print(request.path)
     return render(
-        request, "verifyemail.html", {"code": code,
-                                      "validation_id": validation_id}
+        request, "verifyemail.html", {"validation_id": validation_id}
     )
 
 
-def validate_code(request):
+def validate_code(request, validation_id):
     """Return a render stating whether verification was successful.
 
     Args:
@@ -86,13 +84,13 @@ def validate_code(request):
         submitted_code = int(
             request.POST.get("given_digit")
         )  # Assuming your form field name is 'given_digit'
-        valid_id = int(request.POST.get("valid_id"))
         # Retrieve the validation_instance using the generated_code
-        validation_instance = Validation.objects.get(id=valid_id)
+        validation_instance = Validation.objects.get(id=validation_id)
+        person_key = validation_instance.person.id
         print(submitted_code, validation_instance.validation_code)
         if submitted_code == validation_instance.validation_code:
             # Code is correct
-            return render(request, "success.html")  # Render success.html
+            return render(request, "success.html", {'person_key': person_key})  # Render success.html
         else:
             # Code is incorrect
             return render(request, "error.html")  # Render error.html
@@ -119,36 +117,40 @@ def send_validation(to_address, code):
         print(e.message)
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-def get_invite(request):
+def get_invite(request, person_key):
     if request.method == "POST":
-        selected_invitees = request.POST.getlist("selected_invitees")
+        selected_invitees = request.POST.get("selected_invitees")
         selected_meeting_times = request.POST.getlist("meeting_times")
-        sender_email = request.POST.get("sender_email")
-
-        sender_person, _ = Person.objects.get_or_create(email=sender_email)
+        person_instance = Person.objects.get(id=person_key)
+        sender_email = person_instance.email
+        selected_invitees = selected_invitees.split(',')
+        selected_invitees.pop()
+        sender_person = Person.objects.create(email=sender_email)
         print("Sender person is", sender_email)
 
         invitation = Invitation.objects.create(sender=sender_person)
-
+        invitation_key = invitation.id
+    
         for email in selected_invitees:
-            invited, _ = Person.objects.get_or_create(email=email)
-            send_invite(email, sender_person)
+            invitee = Person.objects.create(email=email)
+            invitee_key = invitee.id
+            send_invite(email, sender_email)
             for selected_time in selected_meeting_times:
                 timeslot = Timeslot.objects.create(
-                    invitee=invited,
                     invitation=invitation,
+                    invitee=invitee,
                     selected_dt=selected_time
                 )
-        return render(request, "invitation_sent.html")
+        return render(request, "invitation_sent.html", {'invitee_key': invitee_key, 'invitation_key': invitation_key})
     return render(request, "success.html")
 
 def send_invite(invitee, sender_person):
     print(invitee, sender_person)
     message = sendgrid.mail.Mail(
-    from_email="sidharthpodury@gmail.com",
-    to_emails="sidharthpodury@gmail.com",
+    from_email=sender_person,
+    to_emails=invitee,
     subject="Here is your invitation",
-    html_content=f"Invitation sent",
+    html_content=f"Invitation",
     )
     try:
         sgclient = sendgrid.SendGridAPIClient(secret.my_api_key)
@@ -158,3 +160,12 @@ def send_invite(invitee, sender_person):
         print(response.headers)
     except Exception as e:
         print(e.message)
+
+def show_invite(request, invitee_key, invitation_key):
+    #timeslot_instance = Timeslot.objects.get(invitee=invitee_key, invitation=invitation_key)
+    timeslots = Timeslot.objects.filter(invitee=invitee_key, invitation=invitation_key)
+    print(timeslots)
+    selected_ts = []
+    for timeslot in timeslots:
+        selected_ts.append(timeslot.selected_dt)
+    return render(request, 'show_invite.html', {'selected_ts':selected_ts})
